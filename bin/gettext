@@ -2,6 +2,7 @@
 'use strict';
 
 var glob = require("glob")
+var jade = require('jade')
 var fs = require('fs');
 var argv = require('minimist')(process.argv);
 var Extractor = require('angular-gettext-tools').Extractor;
@@ -49,7 +50,6 @@ function compile(options) {
         }));
     }).on('end', function finish(fileNames) {
         console.log('Finished compiling ' + options.files +', read '+fileNames.length+' files.');
-        
         fs.writeFile(options.dest, output, null, function(err) {
             if (err) {
               throw err;
@@ -61,21 +61,26 @@ function compile(options) {
 }
 
 function extract(options) {
+    console.log(options)
     var gettextExtractor = new Extractor(objToUpperCase(options));
 
+    console.log(options.files)
     glob(options.files, null, function (err, fileNames) {
         if (err) {
             throw err;
         }
+        console.log(fileNames)
         fileNames.forEach(function (filename) {
             var content = fs.readFileSync(filename, 'utf8');
-
-            gettextExtractor.parse(filename, content);
+            console.log(content)
+            var jadeContent = jade.compile(content, { client: true, pretty: true })()
+            console.log(content, jadeContent)
+            gettextExtractor.parse(filename.replace('jade', 'html'), jadeContent);
         });
     }).on('end', function finish(fileNames) {
         console.log('Finished parsing ' + options.files +', read '+fileNames.length+' files.');
 
-        fs.writeFile(options.dest, gettextExtractor.toString(), null, function (err) {
+        fs.writeFile(options.dest, gettextExtractor.toString().replace('.html:', '.jade:'), null, function (err) {
           if (err){
             throw err;
           }
