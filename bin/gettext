@@ -7,9 +7,10 @@ var fs = require('fs');
 var argv = require('minimist')(process.argv);
 var Extractor = require('angular-gettext-tools').Extractor;
 var Compiler = require('angular-gettext-tools').Compiler;
+var path = require('path')
 var context
 
-if (argv.context) context = require(argv.context)
+if (argv.context) context = require(path.resolve(__dirname, argv.context))
 
 if (!argv.dest) {
   throw new Error('dest parameter missed');
