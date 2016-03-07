@@ -7,6 +7,9 @@ var fs = require('fs');
 var argv = require('minimist')(process.argv);
 var Extractor = require('angular-gettext-tools').Extractor;
 var Compiler = require('angular-gettext-tools').Compiler;
+var context
+
+if (argv.context) context = require(argv.context)
 
 if (!argv.dest) {
   throw new Error('dest parameter missed');
@@ -61,20 +64,17 @@ function compile(options) {
 }
 
 function extract(options) {
-    console.log(options)
     var gettextExtractor = new Extractor(objToUpperCase(options));
 
-    console.log(options.files)
     glob(options.files, null, function (err, fileNames) {
         if (err) {
             throw err;
         }
-        console.log(fileNames)
         fileNames.forEach(function (filename) {
             var content = fs.readFileSync(filename, 'utf8');
-            console.log(content)
-            var jadeContent = jade.compile(content, { client: true, pretty: true })()
-            console.log(content, jadeContent)
+            var locals
+            if (context) locals = { config: context }
+            var jadeContent = jade.compile(content, { filename: filename, client: true, pretty: true })(locals)
             gettextExtractor.parse(filename.replace('jade', 'html'), jadeContent);
         });
     }).on('end', function finish(fileNames) {
